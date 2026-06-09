@@ -1,0 +1,25 @@
+{
+  "name": "game-used",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch index.ts",
+    "build": "node build.js",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "esbuild": "^0.28.0",
+    "tsx": "^4.19.2",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "puppeteer": "^25.1.0"
+  }
+}
