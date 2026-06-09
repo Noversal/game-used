@@ -1,6 +1,29 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { load } from 'cheerio';
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+const navigationPage = async ({ page, currentPage }: { page: Page, currentPage: string }) => {
+    await page.goto(currentPage);
+
+    const content = await page.content();
+    if (!content) {
+        throw new Error('No content found');
+    }
+    const $ = load(content);
+
+    const productDescription = $(".product-desc").toArray();
+
+    const detailsGames: [string, string][] = [];
+
+    for (const product of productDescription) {
+        const title = $(product).find('.product-title h3').text();
+        const price = $(product).find('.product-price ins').text();
+        detailsGames.push([title, price]);
+    }
+
+    return detailsGames;
+}
 
 (async () => {
     const URI = 'https://www.soygamerargentina.com/buscar/IDDE0_1_usados/';
@@ -34,6 +57,15 @@ import { load } from 'cheerio';
         const pageNumber = query.get("paginaActual")
 
         pages.push(`${URI}?paginaActual=${pageNumber}`);
+        await sleep(2000);
+    }
+
+    const pagesWithContent: [string, string][][] = [];
+
+    for (const linkPage of pages) {
+        const content = await navigationPage({ page, currentPage: linkPage });
+        await sleep(2000);
+        pagesWithContent.push(content);
     }
 
     await browser.close();
