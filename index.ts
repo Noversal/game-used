@@ -25,6 +25,13 @@ const navigationPage = async ({ page, currentPage }: { page: Page, currentPage: 
     return detailsGames;
 }
 
+const cleanTitle = (rawTitle: string) => {
+    return rawTitle
+        .replace(/[-–—]?\s*[\(\[\{]?\s*\b(usado[as]?|used)\b\s*[\)\]\}]?\s*[-–—]?/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 (async () => {
     const URI = 'https://www.soygamerargentina.com/buscar/IDDE0_1_usados/';
 
@@ -67,6 +74,19 @@ const navigationPage = async ({ page, currentPage }: { page: Page, currentPage: 
         await sleep(2000);
         pagesWithContent.push(content);
     }
+
+    const allGames = pagesWithContent.flat();
+
+    const cleanList = allGames.map(([title, price]) => [cleanTitle(title), price]);
+
+    const result = cleanList.map(([title, price]) => {
+        const titleSplit = title.split(' ');
+        const gameConsole = titleSplit.pop()?.toUpperCase();
+        const name = titleSplit.join(' ');
+        return { gameConsole, name, price }
+    })
+
+    console.table(result);
 
     await browser.close();
 })();
