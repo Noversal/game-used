@@ -4,6 +4,9 @@ FROM node:22-slim AS builder
 # Habilitar pnpm nativamente
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
+# Evitar que puppeteer descargue Chromium durante la instalación de dependencias
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+
 WORKDIR /app
 
 # Copiar configuraciones de dependencias y lockfile de pnpm
@@ -33,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     ca-certificates \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.pub' \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update \
     && apt-get install -y --no-install-recommends \
     google-chrome-stable \
@@ -43,4 +46,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY --from=builder /app/dist/index.js ./dist/index.js
 COPY package.json ./
 
-CMD ["pnpm", "start"]
+CMD ["node", "dist/index.js"]
