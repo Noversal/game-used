@@ -54,7 +54,20 @@ docker build -t game-used-scraper .
 Una vez que la imagen se haya construido correctamente, ejecuta el contenedor con el siguiente comando:
 
 ```bash
+# Para ver todos los juegos disponibles
 docker run --rm game-used-scraper
+
+# Para ver solo los juegos de una consola específica
+docker run --rm -e CONSOLE=PS4 game-used-scraper
+
+# Para ver solo los juegos de una consola específica
+docker run --rm -e CONSOLE=PS5 game-used-scraper
+
+# Para ver solo los juegos de una consola específica
+docker run --rm -e CONSOLE=PS3 game-used-scraper
+
+# Para ver solo los juegos de una consola específica
+docker run --rm -e CONSOLE=SWITCH game-used-scraper
 ```
 
 *(El parámetro `--rm` se utiliza para que el contenedor se elimine automáticamente una vez finalice la ejecución, liberando recursos).*
@@ -69,7 +82,7 @@ El script realiza las siguientes transformaciones a los datos antes de mostrarlo
 1. **Limpieza de Título:** Elimina variaciones de la palabra "usado" o "used" (por ejemplo: "usado", "usada", "usados", etc.) y signos de puntuación adicionales.
 2. **Extracción de Consola:** Identifica la plataforma/consola del videojuego (como PS3, PS4, PS5, Switch) a partir del final del título y la muestra en una columna separada.
 
-### Ejemplo de salida en la terminal:
+### Ejemplo de salida en la terminal si no se le especifica una consola:
 
 ```text
 ┌─────────┬─────────────┬────────────────────────────────────────────────────┬──────────────┐
@@ -80,6 +93,18 @@ El script realiza las siguientes transformaciones a los datos antes de mostrarlo
 │ 2       │ 'PS3'       │ 'Call Of Duty Advanced Warfare'                    │ '$ 18000.00' │
 │ 3       │ 'PS3'       │ 'Diablo 3'                                         │ '$ 15000.00' │
 │ 4       │ 'PS5'       │ 'Spiderman 2'                                      │ '$ 55000.00' │
+│ ...     │ ...         │ ...                                                │ ...          │
+└─────────┴─────────────┴────────────────────────────────────────────────────┴──────────────┘
+```
+
+### Ejemplo de salida en la terminal si se le especifica una consola:
+
+```text
+┌─────────┬─────────────┬────────────────────────────────────────────────────┬──────────────┐
+│ (index) │ gameConsole │ name                                               │ price        │
+├─────────┼─────────────┼────────────────────────────────────────────────────┼──────────────┤
+│ 0       │ 'PS4'       │ 'Bloodborne'                                       │ '$ 24000.00' │
+│ 1       │ 'PS4'       │ 'Street Fighter x Tekken'                          │ '$ 25000.00' │
 │ ...     │ ...         │ ...                                                │ ...          │
 └─────────┴─────────────┴────────────────────────────────────────────────────┴──────────────┘
 ```
