@@ -1,6 +1,20 @@
 import puppeteer, { Browser, Page } from 'puppeteer';
 import { load } from 'cheerio';
 import { createSpinner } from 'nanospinner';
+import { env } from 'node:process';
+
+enum Console {
+    PS3 = 'PS3',
+    PS4 = 'PS4',
+    PS5 = 'PS5',
+    SWITCH = 'SWITCH',
+}
+
+interface Game {
+    gameConsole: Console;
+    name: string;
+    price: string;
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -33,7 +47,7 @@ const cleanTitle = (rawTitle: string) => {
         .trim();
 }
 
-export const scrapeGames = async () => {
+const scrapeGames = async (): Promise<Game[]> => {
     const URI = 'https://www.soygamerargentina.com/buscar/IDDE0_1_usados/';
 
     // Spinner para inicio del navegador
@@ -96,9 +110,9 @@ export const scrapeGames = async () => {
 
     const result = cleanList.map(([title, price]) => {
         const titleSplit = title.split(' ');
-        const gameConsole = titleSplit.pop()?.toUpperCase();
+        const gameConsole: Console = titleSplit.pop()?.toUpperCase() as Console;
         const name = titleSplit.join(' ');
-        return { gameConsole, name, price }
+        return { gameConsole, name, price };
     });
     cleaningSpinner.success({ text: 'Listado limpio y formateado con éxito.' });
 
@@ -109,3 +123,34 @@ export const scrapeGames = async () => {
 
     return result;
 };
+
+const filterConsole = ({ games, console }: { games: Game[], console: Console }) => {
+    const filteredGames = games.filter((game) => {
+        return game.gameConsole === console;
+    });
+
+    return filteredGames;
+};
+
+(async () => {
+    const games = await scrapeGames();
+    const consoleUser = env.CONSOLE
+
+    if (!consoleUser) {
+        console.table(games);
+        return;
+    }
+
+    if (!(consoleUser in Console)) {
+        console.error(`No se encuentra  la consola ${consoleUser} dentro de nuestro registro`);
+        return;
+    }
+
+    const filteredGames = filterConsole({ games, console: consoleUser as Console });
+
+    if (filteredGames.length === 0) {
+        console.error(`No se encontraron juegos para la consola ${consoleUser}`);
+        return;
+    }
+    console.table(filteredGames);
+})()
