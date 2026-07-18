@@ -16,6 +16,17 @@ interface Game {
     price: string;
 }
 
+const getDataHTML = async (URI: string) => {
+    const response = await fetch(URI);
+    const data = await response.text();
+
+    if (!data) {
+        throw new Error("No data");
+    }
+
+    return data;
+}
+
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const navigationPage = async ({ page, currentPage }: { page: Page, currentPage: string }) => {
