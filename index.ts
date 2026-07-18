@@ -1,4 +1,3 @@
-import puppeteer, { Browser, Page } from 'puppeteer';
 import { load } from 'cheerio';
 import { createSpinner } from 'nanospinner';
 import { env } from 'node:process';
