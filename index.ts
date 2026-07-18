@@ -29,13 +29,15 @@ const getDataHTML = async (URI: string) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const navigationPage = async ({ page, currentPage }: { page: Page, currentPage: string }) => {
-    await page.goto(currentPage);
+const navigationPage = async ({ currentPage }: { currentPage: string }) => {
+    let content: string;
 
-    const content = await page.content();
-    if (!content) {
-        throw new Error('No content found');
+    try {
+        content = await getDataHTML(currentPage);
+    } catch (error) {
+        return [];
     }
+
     const $ = load(content);
 
     const productDescription = $(".product-desc").toArray();
@@ -64,19 +66,13 @@ const scrapeGames = async (): Promise<Game[]> => {
     // Spinner para inicio del navegador
     const initSpinner = createSpinner('Iniciando navegador y cargando página principal...').start();
 
-    const browser: Browser = await puppeteer.launch({
-        args: ['--no-sandbox']
-    });
-    const page: Page = await browser.newPage();
+    let content: string;
 
-    await page.goto(URI);
-
-    const content = await page.content();
-
-    if (!content) {
+    try {
+        content = await getDataHTML(URI);
+    } catch (error) {
         initSpinner.error({ text: 'Error: No se encontró contenido en la página principal.' });
-        await browser.close();
-        throw new Error('No content found');
+        process.exit(1);
     }
 
     const $ = load(content);
@@ -95,7 +91,6 @@ const scrapeGames = async (): Promise<Game[]> => {
         const pageNumber = query.get("paginaActual")
 
         pages.push(`${URI}?paginaActual=${pageNumber}`);
-        await sleep(2000);
     }
 
     initSpinner.success({ text: `Conexión exitosa. Se encontraron ${pages.length} páginas para procesar.` });
@@ -107,7 +102,11 @@ const scrapeGames = async (): Promise<Game[]> => {
     for (let i = 0; i < pages.length; i++) {
         const linkPage = pages[i];
         scrapeSpinner.update({ text: `Procesando página ${i + 1}/${pages.length}: ${linkPage}` });
-        const content = await navigationPage({ page, currentPage: linkPage });
+        const content = await navigationPage({ currentPage: linkPage });
+        if (!content.length) {
+            scrapeSpinner.error({ text: `No se encontro contenido en la pagina ${linkPage}` });
+            process.exit(1);
+        }
         pagesWithContent.push(content);
         await sleep(2000);
     }
@@ -126,11 +125,6 @@ const scrapeGames = async (): Promise<Game[]> => {
         return { gameConsole, name, price };
     });
     cleaningSpinner.success({ text: 'Listado limpio y formateado con éxito.' });
-
-    // Cerrar navegador
-    const closeSpinner = createSpinner('Cerrando navegador...').start();
-    await browser.close();
-    closeSpinner.success({ text: 'Navegador cerrado.' });
 
     return result;
 };
